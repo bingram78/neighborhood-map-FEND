@@ -1,8 +1,10 @@
 /*
 Stylesheet for Neighborhood Map - FEND
 */
-
-/* Optional: Makes the sample page fill the window. */
+* {
+  box-sizing: border-box;
+}
+/* Optional: Makes the sample page fill the window especially the map. */
 html, body {
  height: 100%;
  margin: 0;

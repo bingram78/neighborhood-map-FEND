@@ -7,9 +7,10 @@
     <link rel="icon" type="image/png" href="images/favicon/favicon-32x32.png" sizes="32x32" />
     <link rel="icon" type="image/png" href="images/favicon/favicon-16x16.png" sizes="16x16" />
     <link rel="stylesheet" href="css/style.css">
-    <!-- <script src="js/knockout-3.4.2.js"></script> -->
+    <script src="js/libs/knockout-3.4.2.js"></script>
+    <script src="js/libs/jquery-3.2.0.min.js"></script>
     <script src="js/script.js"></script>
-    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB9wZVvs3aPmtAaRWpXO_V5vwKPMuJcMKo&callback=initMap"></script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB9wZVvs3aPmtAaRWpXO_V5vwKPMuJcMKo&callback=initMap&libraries=places"></script>
   </head>
   <body>
     <!-- TODO: Fix header so map correctly displays while header is present. -->
@@ -19,6 +20,12 @@
     <section id="toolbar" class="fonts sidebar">
       <!-- TODO: Create sidebar animation for toggling menu icon -->
       <a href="#menu" id="nav-toggle">&#9776; Menu</a>
+      <article>
+        <!-- NOT YET WORKING! -->
+        <!-- <button data-bind="click: nightMode">Switch to Night Mode</button> -->
+        
+      </article>
+      <article></article>
     </section>
     <section id="map"></section>
   </body>
