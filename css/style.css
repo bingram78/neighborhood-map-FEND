@@ -28,4 +28,5 @@ html, body {
 .sidebar {
   width: 25%;
   float: left;
+  overflow: auto;
 }

@@ -1,12 +1,22 @@
 /*
-Neighborhood Map project FEND
+INACTIVE AT THE MOMENT
 */
 
 
 
 /* MODELS */
 // an array of default locations
-var defaultLocations = [];
+var defaultLocations = [
+  {
+    "name": "Bellingham Farmers Market",
+    "place": "ChIJj2gjZrmjhVQRoKgWwFF5mb8",
+    "address": "1100 Railroad Ave, Bellingham, WA 98225, USA"},
+  {
+    "name": "Whatcom Falls Park",
+    "place": "ChIJoTD3_AikhVQRaAMWHYS7fMY",
+    "address": "1401 Electric Ave, Bellingham, WA 98229, USA"
+  }
+];
 
 // an array of user input locations TODO: include user input later.
 var userLocations = [];
@@ -104,39 +114,57 @@ function initMap() {
     zoom: 13,
     styles: mapNightMode
   };
-  
+
   var bounds = new google.maps.LatLngBounds();
-  var locations = [
-    {title: "Bellingham Farmers Market", position:{lat:48.746775, lng:-122.481423}}
-  ];
   var map = new google.maps.Map(document.getElementById('map'), mapOptions);
   var service = new google.maps.places.PlacesService(map);
 
-  for (var i = 0; i < locations.length; i++) {
-    var titles = locations[i].title;
-    var position = locations[i].position;
-    var marker = new google.maps.Marker({
-      map: map,
-      title: titles,
-      position: position,
-      animation: google.maps.Animation.DROP,
-    });
-    var infoWindow = new google.maps.InfoWindow( {
-      content: titles
-    });
+  var infoWindow = new google.maps.InfoWindow();
+  function bindInfoWindow(marker, map, infoWindow, html) {
     marker.addListener('click', function() {
-      infoWindow.open(map, marker);
+      infoWindow.setContent(html);
+      infoWindow.open(map, this);
     });
-  }
+  };
+
+  for (var i = 0; i < defaultLocations.length; i++) {
+    var title = defaultLocations[i].name;
+    var address = '<strong>' + defaultLocations[i].address + '</strong>';
+    var places = defaultLocations[i].place;
+    console.log(address);
+// NOT WORKING! FIX THIS!
+    service.getDetails({
+      placeId: places
+    }, function(place, status) {
+        console.log(address);
+          if (status !== google.maps.places.PlacesServiceStatus.OK) {
+            console.log("this be crazy");
+          }
+          else {
+            var marker = new google.maps.Marker( {
+              map: map,
+              title: title,
+              position: place.geometry.location,
+              animation: google.maps.Animation.DROP,
+              content: address
+            });
+            bindInfoWindow(marker, map, infoWindow, address);
+          }
+      });
+    };
+
+
 
   var viewModel = function() {
     var self = this;
 
+
   };
 
+var vm = new viewModel();
   // Apply bindings for KO viewModel. Query the document?
   // $(document).ready(function() {
-    ko.applyBindings(viewModel);
+ko.applyBindings(vm);
   // });
 
 }
