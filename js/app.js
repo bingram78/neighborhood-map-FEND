@@ -2,18 +2,18 @@
 var defaultLocations = [
   {
     name: "Bellingham Farmers Market",
-    place: "ChIJj2gjZrmjhVQRoKgWwFF5mb8",
     address: "1100 Railroad Ave, Bellingham, WA 98225, USA"},
   {
     name: "Whatcom Falls Park",
-    place: "ChIJoTD3_AikhVQRaAMWHYS7fMY",
     address: "1401 Electric Ave, Bellingham, WA 98229, USA"
   }
 ];
 
-// not sure yet if these two are needed.
+// not sure yet if these are needed.
 
 var map;
+var service;
+var geocode;
 // var markers = [];
 var nightModeStyle = [];
 
@@ -24,16 +24,24 @@ function initMap() {
     zoom: 13,
     // style: nightModeStyle
   };
-  var map = new google.maps.Map(document.getElementById('map'), mapOptions);
-  var placeServices = new google.maps.places.PlacesService(map);
+  map = new google.maps.Map(document.getElementById('map'), mapOptions);
+  service = new google.maps.places.PlacesService(map);
+  geocode = new google.maps.Geocoder();
 };
 
+var googleError = function() {
+  console.log("no map");
+};
 
 // Function to make the items in the location array observable to be used in viewmodel.
 var ViewLocations = function(data) {
-  this.name = ko.observable(data.name);
-  this.address = ko.observable(data.address);
-  this.place = ko.observable(data.place);
+  var self = this;
+  this.name = data.name;
+  this.address = data.address;
+  this.makeMarker = ko.computed(function() {
+    console.log('computed is recognized');
+  }, this);
+
 };
 
 
@@ -48,5 +56,7 @@ function ViewModel() {
 
 };
 
-var vm = new ViewModel();
-ko.applyBindings(vm);
+$(document).ready(function() {
+  var vm = new ViewModel();
+  ko.applyBindings(vm);
+});
