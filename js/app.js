@@ -31,6 +31,7 @@ function initMap() {
 
 var googleError = function() {
   console.log("no map");
+  window.alert("Maps cannot load. Please check yo' situation!;")
 };
 
 // Function to make the items in the location array observable to be used in viewmodel.
