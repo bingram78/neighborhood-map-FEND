@@ -1,4 +1,6 @@
-// an array of default locations
+
+
+// Array of default locations
 var defaultLocations = [
   {
     name: "Bellingham Farmers Market",
@@ -6,16 +8,23 @@ var defaultLocations = [
   {
     name: "Whatcom Falls Park",
     address: "1401 Electric Ave, Bellingham, WA 98229, USA"
+  },
+  {
+    name: "SPARK Museum of Electrical Invention",
+    address: "1312 Bay St, Bellingham, WA 98225, USA"
   }
 ];
 
-// not sure yet if these are needed.
-
+// Set global variables.
 var map;
-var service;
 var geocode;
+var infoWindow;
+var content;
 var marker;
-// var markers = [];
+var markers = [];
+
+var service;
+
 var nightModeStyle = [
         {elementType: 'geometry', stylers: [{color: '#242f3e'}]},
         {elementType: 'labels.text.stroke', stylers: [{color: '#242f3e'}]},
@@ -97,7 +106,6 @@ var nightModeStyle = [
         }
       ];
 
-// Initializes google map on page
 function initMap() {
   var mapOptions = {
     center: {lat: 48.7435276, lng: -122.4856877},
@@ -105,41 +113,68 @@ function initMap() {
     styles: nightModeStyle
   };
   map = new google.maps.Map(document.getElementById('map'), mapOptions);
-  service = new google.maps.places.PlacesService(map);
-  geocode = new google.maps.Geocoder();
-};
+  geocoder = new google.maps.Geocoder();
 
-// Displays error alert box that Maps could not load.
-// Called from google api script loading in HTML file.
-var googleError = function() {
-  console.log("no map");
-  window.alert("Maps cannot load. Please check yo' situation!;")
-};
 
-// Function to make the items in the location array observable to be used in viewmodel.
-var ViewLocations = function(data) {
-  var self = this;
-  this.name = data.name;
-  this.address = data.address;
-  this.makeMarker = ko.computed(function() {
-    console.log('computed is recognized');
-  }, this);
+// This makes each default location. TODO: infoWindow.
+  var ViewLocations = function(loc) {
+    var that = this;
+    this.name = loc.name;
+    this.address = loc.address;
+
+    // Setup infoWindow information and bind it below with marker as generated.
+    infoWindow = new google.maps.InfoWindow();
+    var infoWindowContent = '<strong>' + that.name + '</strong><br>' + this.address;
+    var bindInfoWindow = function(marker, map, infoWindow, html) {
+      marker.addListener('click', function() {
+        infoWindow.setContent(html);
+        infoWindow.open(map, this);
+      })
+    }
+
+    // Creates markers for each location binds infowindow information with each one
+    // TODO: create error for infowindow, setTimeouts and Animations.
+    this.marker = geocoder.geocode({'address':this.address}, function(results, status) {
+      if (status === 'OK') {
+        var geolocation = results[0].geometry.location
+        var markerOptions = {
+          map: map,
+          position: geolocation,
+          animation: google.maps.Animation.DROP
+        }
+        marker = new google.maps.Marker(markerOptions);
+        markers.push(marker);
+        bindInfoWindow(marker, map, infoWindow, infoWindowContent);
+      }
+      else {
+        alert('Geocode was not successful because:' + status);
+      }
+    });
+
+  };
+
+  function ViewModel() {
+    var self = this;
+    // Creates observables and arrays.
+    this.locationList = ko.observableArray([]);
+    defaultLocations.forEach(function(i) {
+      var locations = new ViewLocations(i);
+      self.locationList.push(locations);
+      });
+
+  };
+
+  // Displays error alert box that Maps could not load.
+  // Called from google api script loading in HTML file.
+  var googleError = function() {
+    window.alert("Maps cannot load. Please check yo' situation!");
+  };
+
+
+  var vm = new ViewModel();
+  ko.applyBindings(vm);
 
 };
 
 
 // MV for interacting with html.
-function ViewModel() {
-  var self = this;
-  this.locationList = ko.observableArray([]);
-  defaultLocations.forEach(function(i) {
-    self.locationList.push( new ViewLocations(i) );
-  });
-  
-
-
-
-};
-
-var vm = new ViewModel();
-ko.applyBindings(vm);
