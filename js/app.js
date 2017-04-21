@@ -19,7 +19,6 @@ var defaultLocations = [
 var map;
 var geocode;
 var infoWindow;
-var content;
 var marker;
 var markers = [];
 
@@ -152,7 +151,7 @@ function initMap() {
     });
 
   };
-
+// TODO: figure out the list click bindings for the html and connect markers to it.
   function ViewModel() {
     var self = this;
     // Creates observables and arrays.
