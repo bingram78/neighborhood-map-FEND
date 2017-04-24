@@ -105,6 +105,12 @@ var nightModeStyle = [
         }
       ];
 
+// Displays error alert box that Maps could not load.
+// Called from google api script loading in HTML file.
+var googleError = function() {
+  window.alert("Maps cannot load. Please check yo' situation!");
+};
+
 function initMap() {
   var mapOptions = {
     center: {lat: 48.7435276, lng: -122.4856877},
@@ -123,19 +129,20 @@ function initMap() {
 
     // Setup infoWindow information and bind it below with marker as generated.
     infoWindow = new google.maps.InfoWindow();
-    var infoWindowContent = '<strong>' + that.name + '</strong><br>' + this.address;
+    var infoWindowContent = '<strong>' + that.name + '</strong><br>' + that.address;
     var bindInfoWindow = function(marker, map, infoWindow, html) {
       marker.addListener('click', function() {
         infoWindow.setContent(html);
         infoWindow.open(map, this);
       })
     }
-
     // Creates markers for each location binds infowindow information with each one
     // TODO: create error for infowindow, setTimeouts and Animations.
-    this.marker = geocoder.geocode({'address':this.address}, function(results, status) {
+    geocoder.geocode({'address':this.address}, function(results, status) {
       if (status === 'OK') {
         var geolocation = results[0].geometry.location
+        //TODO: create the address from the geocoded results. Will require refactoring.
+        // console.log(results[0].formatted_address);
         var markerOptions = {
           map: map,
           position: geolocation,
@@ -144,13 +151,21 @@ function initMap() {
         marker = new google.maps.Marker(markerOptions);
         markers.push(marker);
         bindInfoWindow(marker, map, infoWindow, infoWindowContent);
+        that.location = marker;
       }
       else {
         alert('Geocode was not successful because:' + status);
       }
     });
+    // function for applying click binding.
+    this.showMarker = function() {
+      infoWindow.setContent(infoWindowContent);
+      infoWindow.open(map, that.location);
 
+
+    };
   };
+
 // TODO: figure out the list click bindings for the html and connect markers to it.
   function ViewModel() {
     var self = this;
@@ -159,14 +174,7 @@ function initMap() {
     defaultLocations.forEach(function(i) {
       var locations = new ViewLocations(i);
       self.locationList.push(locations);
-      });
-
-  };
-
-  // Displays error alert box that Maps could not load.
-  // Called from google api script loading in HTML file.
-  var googleError = function() {
-    window.alert("Maps cannot load. Please check yo' situation!");
+    });
   };
 
 
