@@ -113,6 +113,37 @@ var googleError = function() {
   window.alert("Maps cannot load. Please check yo' situation!");
 };
 
+// Ajax request for the Flickr results of location.
+
+var flickrPhotos = function(place) {
+  var flickrBaseUrl = "https://api.flickr.com/services/rest/?";
+  var flickrMethod = "method=flickr.photos.search&";
+  var flickrApiKey = "api_key=f21a10d1ea16e861d19731ef5b7c6681&";
+  var flickrText = "text=";
+  var flickrSearch = place;
+  var flickrSearchParams = "&per_page=5&format=json&nojsoncallback=1"
+  var flickrFullUrl = flickrBaseUrl+flickrMethod+flickrApiKey+flickrText+flickrSearch+flickrSearchParams;
+  var flickrAjaxRequest = $.ajax({
+    url: flickrFullUrl,
+    type: 'get',
+    dataType: 'json',
+  });
+  flickrAjaxRequest.done(function (data) {
+    // for (var i=0; i<data.photos.photo.length; i++) {}
+    var flickrImageID = data.photos.photo[0].id;
+    var flickrServerID = data.photos.photo[0].server;
+    var flickrFarmID = data.photos.photo[0].farm;
+    var flickrSecret = data.photos.photo[0].secret;
+    var flickrResults = "https://farm" + flickrFarmID + ".staticflickr.com/"
+                          + flickrServerID + "/" + flickrImageID + "_" + flickrSecret + "_m.jpg";
+    fullImageTag = "<img src='" + flickrResults + "' alt='image from flickr'>";
+    console.log(fullImageTag);
+    return fullImageTag;
+  }).fail(function (data) {
+    window.alert("flickr has failed");
+  });
+};
+
 function initMap() {
   var mapOptions = {
     center: {lat: 48.7435276, lng: -122.4856877},
@@ -133,39 +164,9 @@ var ViewLocations = function(loc) {
   this.name = loc.name;
   this.address = loc.address;
 
-  // Ajax request for the Flickr results of location.
-  var flickrBaseUrl = "https://api.flickr.com/services/rest/?";
-  var flickrMethod = "method=flickr.photos.search&";
-  var flickrApiKey = "api_key=f21a10d1ea16e861d19731ef5b7c6681&";
-  var flickrText = "text=";
-  var flickrSearch = that.name;
-  var flickrSearchParams = "&per_page=5&format=json&nojsoncallback=1"
-  var flickrFullUrl = flickrBaseUrl+flickrMethod+flickrApiKey+flickrText+flickrSearch+flickrSearchParams;
-  var flickrAjaxRequest = $.ajax({
-    url: flickrFullUrl,
-    type: 'get',
-    dataType: 'json',
-  });
-  var flickrPhotos = function() {
-    flickrAjaxRequest.done(function (data) {
-      // for (var i=0; i<data.photos.photo.length; i++) {}
-      var flickrImageID = data.photos.photo[0].id;
-      var flickrServerID = data.photos.photo[0].server;
-      var flickrFarmID = data.photos.photo[0].farm;
-      var flickrSecret = data.photos.photo[0].secret;
-      var flickrResults = "https://farm" + flickrFarmID + ".staticflickr.com/"
-                            + flickrServerID + "/" + flickrImageID + "_" + flickrSecret + "_m.jpg";
-      fullImageTag = "<img src='" + flickrResults + "' alt='image from flickr'>";
-      console.log(fullImageTag);
-    })
-    flickrAjaxRequest.fail(function (data) {
-      window.alert("flickr has failed");
-    });
-  };
-
   // Setup infoWindow information and bind it below with marker as generated.
   var infoWindowContent = '<strong>' + that.name + '</strong><br>'
-                          + that.address + '<br>' + flickrPhotos();
+                          + that.address + '<br>' + flickrPhotos(that.name);
   infoWindow = new google.maps.InfoWindow();
   var bindInfoWindow = function(marker, map, infoWindow, html) {
     marker.addListener('click', function() {
