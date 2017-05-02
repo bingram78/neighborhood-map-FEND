@@ -1,3 +1,5 @@
+// flickr key = f21a10d1ea16e861d19731ef5b7c6681
+// flickr secret = 9b5d0f8b2b5450eder
 
 
 // Array of default locations
@@ -21,8 +23,8 @@ var geocode;
 var infoWindow;
 var marker;
 var markers = [];
-
 var service;
+var fullImageTag;
 
 var nightModeStyle = [
         {elementType: 'geometry', stylers: [{color: '#242f3e'}]},
@@ -120,68 +122,93 @@ function initMap() {
   map = new google.maps.Map(document.getElementById('map'), mapOptions);
   geocoder = new google.maps.Geocoder();
 
-
-// This makes each default location. TODO: infoWindow.
-  var ViewLocations = function(loc) {
-    var that = this;
-    this.name = loc.name;
-    this.address = loc.address;
-
-    // Setup infoWindow information and bind it below with marker as generated.
-    infoWindow = new google.maps.InfoWindow();
-    var infoWindowContent = '<strong>' + that.name + '</strong><br>' + that.address;
-    var bindInfoWindow = function(marker, map, infoWindow, html) {
-      marker.addListener('click', function() {
-        infoWindow.setContent(html);
-        infoWindow.open(map, this);
-      })
-    }
-    // Creates markers for each location binds infowindow information with each one
-    // TODO: create error for infowindow, setTimeouts and Animations.
-    geocoder.geocode({'address':this.address}, function(results, status) {
-      if (status === 'OK') {
-        var geolocation = results[0].geometry.location
-        //TODO: create the address from the geocoded results. Will require refactoring.
-        // console.log(results[0].formatted_address);
-        var markerOptions = {
-          map: map,
-          position: geolocation,
-          animation: google.maps.Animation.DROP
-        }
-        marker = new google.maps.Marker(markerOptions);
-        markers.push(marker);
-        bindInfoWindow(marker, map, infoWindow, infoWindowContent);
-        that.location = marker;
-      }
-      else {
-        alert('Geocode was not successful because:' + status);
-      }
-    });
-    // function for applying click binding.
-    this.showMarker = function() {
-      infoWindow.setContent(infoWindowContent);
-      infoWindow.open(map, that.location);
-
-
-    };
-  };
-
-// TODO: figure out the list click bindings for the html and connect markers to it.
-  function ViewModel() {
-    var self = this;
-    // Creates observables and arrays.
-    this.locationList = ko.observableArray([]);
-    defaultLocations.forEach(function(i) {
-      var locations = new ViewLocations(i);
-      self.locationList.push(locations);
-    });
-  };
-
-
   var vm = new ViewModel();
   ko.applyBindings(vm);
+  };
 
+
+// This makes each default location. TODO: infoWindow.
+var ViewLocations = function(loc) {
+  var that = this;
+  this.name = loc.name;
+  this.address = loc.address;
+
+  // Ajax request for the Flickr results of location.
+  var flickrBaseUrl = "https://api.flickr.com/services/rest/?";
+  var flickrMethod = "method=flickr.photos.search&";
+  var flickrApiKey = "api_key=f21a10d1ea16e861d19731ef5b7c6681&";
+  var flickrText = "text=";
+  var flickrSearch = that.name;
+  var flickrSearchParams = "&per_page=5&format=json&nojsoncallback=1"
+  var flickrFullUrl = flickrBaseUrl+flickrMethod+flickrApiKey+flickrText+flickrSearch+flickrSearchParams;
+  var flickrAjaxRequest = $.ajax({
+    url: flickrFullUrl,
+    type: 'get',
+    dataType: 'json',
+  });
+  var flickrPhotos = function() {
+    flickrAjaxRequest.done(function (data) {
+      // for (var i=0; i<data.photos.photo.length; i++) {}
+      var flickrImageID = data.photos.photo[0].id;
+      var flickrServerID = data.photos.photo[0].server;
+      var flickrFarmID = data.photos.photo[0].farm;
+      var flickrSecret = data.photos.photo[0].secret;
+      var flickrResults = "https://farm" + flickrFarmID + ".staticflickr.com/"
+                            + flickrServerID + "/" + flickrImageID + "_" + flickrSecret + "_m.jpg";
+      fullImageTag = "<img src='" + flickrResults + "' alt='image from flickr'>";
+      console.log(fullImageTag);
+    })
+    flickrAjaxRequest.fail(function (data) {
+      window.alert("flickr has failed");
+    });
+  };
+
+  // Setup infoWindow information and bind it below with marker as generated.
+  var infoWindowContent = '<strong>' + that.name + '</strong><br>'
+                          + that.address + '<br>' + flickrPhotos();
+  infoWindow = new google.maps.InfoWindow();
+  var bindInfoWindow = function(marker, map, infoWindow, html) {
+    marker.addListener('click', function() {
+      infoWindow.setContent(html);
+      infoWindow.open(map, this);
+    })
+  }
+
+  // Creates markers for each location binds infowindow information with each one
+  // TODO: create error for infowindow, setTimeouts and Animations.
+  geocoder.geocode({'address':this.address}, function(results, status) {
+    if (status === 'OK') {
+      var geolocation = results[0].geometry.location
+      //TODO: create the address from the geocoded results. Will require refactoring.
+      // console.log(results[0].formatted_address);
+      var markerOptions = {
+        map: map,
+        position: geolocation,
+        animation: google.maps.Animation.DROP
+      }
+      marker = new google.maps.Marker(markerOptions);
+      markers.push(marker);
+// TODO: fix this below
+      bindInfoWindow(marker, map, infoWindow, infoWindowContent);
+      that.location = marker;
+    }
+    else {
+      alert('Geocode was not successful because:' + status);
+    }
+  });
+  // function for applying click binding in the list view.
+  this.showMarker = function() {
+    infoWindow.setContent(infoWindowContent);
+    infoWindow.open(map, that.location);
+  };
 };
 
-
-// MV for interacting with html.
+function ViewModel() {
+  var self = this;
+  // Creates observables and arrays.
+  this.locationList = ko.observableArray([]);
+  defaultLocations.forEach(function(i) {
+    var locations = new ViewLocations(i);
+    self.locationList.push(locations);
+  });
+};
