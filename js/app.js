@@ -1,19 +1,22 @@
-// flickr key = f21a10d1ea16e861d19731ef5b7c6681
-// flickr secret = 9b5d0f8b2b5450eder
-
 
 // Array of default locations
 var defaultLocations = [
   {
     name: "Bellingham Farmers Market",
-    address: "1100 Railroad Ave, Bellingham, WA 98225, USA"},
+    address: "1100 Railroad Ave, Bellingham, WA 98225, USA",
+    image: ""
+  },
   {
     name: "Whatcom Falls Park",
-    address: "1401 Electric Ave, Bellingham, WA 98229, USA"
+    address: "1401 Electric Ave, Bellingham, WA 98229, USA",
+    image: ""
+
   },
   {
     name: "SPARK Museum of Electrical Invention",
-    address: "1312 Bay St, Bellingham, WA 98225, USA"
+    address: "1312 Bay St, Bellingham, WA 98225, USA",
+    image: ""
+
   }
 ];
 
@@ -23,8 +26,6 @@ var geocode;
 var infoWindow;
 var marker;
 var markers = [];
-var service;
-var fullImageTag;
 
 var nightModeStyle = [
         {elementType: 'geometry', stylers: [{color: '#242f3e'}]},
@@ -129,14 +130,13 @@ var flickrPhotos = function(place) {
     dataType: 'json',
   });
   flickrAjaxRequest.done(function (data) {
-    // for (var i=0; i<data.photos.photo.length; i++) {}
     var flickrImageID = data.photos.photo[0].id;
     var flickrServerID = data.photos.photo[0].server;
     var flickrFarmID = data.photos.photo[0].farm;
     var flickrSecret = data.photos.photo[0].secret;
     var flickrResults = "https://farm" + flickrFarmID + ".staticflickr.com/"
                           + flickrServerID + "/" + flickrImageID + "_" + flickrSecret + "_m.jpg";
-    fullImageTag = "<img src='" + flickrResults + "' alt='image from flickr'>";
+    var fullImageTag = "<img src='" + flickrResults + "' alt='image from flickr'>";
     console.log(fullImageTag);
     return fullImageTag;
   }).fail(function (data) {
@@ -165,15 +165,12 @@ var ViewLocations = function(loc) {
   this.address = loc.address;
 
   // Setup infoWindow information and bind it below with marker as generated.
+  // TODO: Call the FlickrPhotos function to retrieve image tag to apply to infoWindow.
+  this.image = flickrPhotos(loc.name);
+  // Need to get data from image request into infoWindowContent below.
   var infoWindowContent = '<strong>' + that.name + '</strong><br>'
-                          + that.address + '<br>' + flickrPhotos(that.name);
+                          + that.address + '<br>';
   infoWindow = new google.maps.InfoWindow();
-  var bindInfoWindow = function(marker, map, infoWindow, html) {
-    marker.addListener('click', function() {
-      infoWindow.setContent(html);
-      infoWindow.open(map, this);
-    })
-  }
 
   // Creates markers for each location binds infowindow information with each one
   // TODO: create error for infowindow, setTimeouts and Animations.
@@ -189,8 +186,10 @@ var ViewLocations = function(loc) {
       }
       marker = new google.maps.Marker(markerOptions);
       markers.push(marker);
-// TODO: fix this below
-      bindInfoWindow(marker, map, infoWindow, infoWindowContent);
+      marker.addListener('click', function() {
+        infoWindow.setContent(infoWindowContent);
+        infoWindow.open(map, this);
+      })
       that.location = marker;
     }
     else {
