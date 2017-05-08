@@ -152,9 +152,9 @@ var ViewLocations = function(loc) {
       self.isVisible = ko.observable(false);
       self.isVisible.subscribe(function(visible) {
         if (visible) {
-          self.marker.setMap(map);
+          self.marker.setVisible(true);
         } else {
-          self.marker.setMap(null);
+          self.marker.setVisible(false);
         }
       });
       self.isVisible(true);
@@ -235,7 +235,6 @@ function ViewModel() {
     } else {
       return self.locationList()
     }
-
   });
 
 
