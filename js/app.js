@@ -25,7 +25,6 @@ var map;
 var geocode;
 var infoWindow;
 var marker;
-var markers = [];
 
 var nightModeStyle = [
         {elementType: 'geometry', stylers: [{color: '#242f3e'}]},
@@ -184,17 +183,12 @@ var ViewLocations = function(loc) {
           var flickrResults = "https://farm" + flickrFarmID + ".staticflickr.com/"
                                 + flickrServerID + "/" + flickrImageID + "_" + flickrSecret + "_m.jpg";
           var fullImageTag = "<img src='" + flickrResults + "' alt='image from flickr'>";
-          // console.log(fullImageTag);
-
           self.infoWindowContent = '<strong>' + self.name + '</strong><br>'
                                   + self.address + '<br>' + fullImageTag;
           self.marker.addListener('click', function() {
             infoWindow.setContent(self.infoWindowContent);
             infoWindow.open(map, this);
           });
-          self.location = marker;
-
-          markers.push(self.marker);
         }).fail(function (data) {
           window.alert("flickr has failed");
         });
@@ -216,24 +210,26 @@ var ViewLocations = function(loc) {
 function ViewModel() {
   var self = this;
   // Creates observables and arrays.
-  this.locationList = ko.observableArray([]);
+  self.locationList = ko.observableArray([]);
   defaultLocations.forEach(function(i) {
     var locations = new ViewLocations(i);
     self.locationList.push(locations);
   });
 
   //TODO: search list and show results.
-  this.search = ko.observable("");
-  this.searchResults = ko.computed(function() {
+  self.search = ko.observable("");
+
+  self.searchResults = ko.computed(function() {
     var s = self.search().toLowerCase();
-    if (s){
+    if (s) {
       return ko.utils.arrayFilter(self.locationList(), function(i) {
         var match = i.name.toLowerCase().indexOf(s) >= 0;
         i.isVisible(match);
         return match;
         })
-    } else {
-      return self.locationList()
+    }
+    else {
+      return self.locationList();
     }
   });
 
