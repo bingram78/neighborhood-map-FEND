@@ -114,7 +114,7 @@ var googleError = function() {
   window.alert("Maps cannot load. Please check yo' situation!");
 };
 
-
+// Initialize map and apply KO bindings from ViewModel. Called by maps api callback.
 function initMap() {
   var mapOptions = {
     center: {lat: 48.7435276, lng: -122.4856877},
@@ -130,7 +130,7 @@ function initMap() {
   };
 
 
-// This makes each default location. TODO: infoWindow.
+// This makes each default location.
 var ViewLocations = function(loc) {
   var self = this;
   this.name = loc.name;
@@ -149,6 +149,16 @@ var ViewLocations = function(loc) {
         animation: google.maps.Animation.DROP
       }
       self.marker = new google.maps.Marker(self.markerOptions);
+      self.isVisible = ko.observable(false);
+      self.isVisible.subscribe(function(visible) {
+        if (visible) {
+          self.marker.setMap(map);
+        } else {
+          self.marker.setMap(null);
+        }
+      });
+      self.isVisible(true);
+
       // Setup infoWindow information and bind it below with marker as generated.
       // Ajax request for the Flickr results of location.
 
@@ -167,10 +177,10 @@ var ViewLocations = function(loc) {
           dataType: 'json',
         });
         flickrAjaxRequest.done(function (data) {
-          var flickrImageID = data.photos.photo[0].id;
-          var flickrServerID = data.photos.photo[0].server;
-          var flickrFarmID = data.photos.photo[0].farm;
-          var flickrSecret = data.photos.photo[0].secret;
+          var flickrImageID = data.photos.photo[2].id;
+          var flickrServerID = data.photos.photo[2].server;
+          var flickrFarmID = data.photos.photo[2].farm;
+          var flickrSecret = data.photos.photo[2].secret;
           var flickrResults = "https://farm" + flickrFarmID + ".staticflickr.com/"
                                 + flickrServerID + "/" + flickrImageID + "_" + flickrSecret + "_m.jpg";
           var fullImageTag = "<img src='" + flickrResults + "' alt='image from flickr'>";
@@ -183,6 +193,7 @@ var ViewLocations = function(loc) {
             infoWindow.open(map, this);
           });
           self.location = marker;
+
           markers.push(self.marker);
         }).fail(function (data) {
           window.alert("flickr has failed");
@@ -196,7 +207,7 @@ var ViewLocations = function(loc) {
   });
 
   // function for applying click binding in the list view.
-  this.showMarker = function() {
+  this.listClickWindow = function() {
     infoWindow.setContent(self.infoWindowContent);
     infoWindow.open(map, self.marker);
   };
@@ -210,4 +221,23 @@ function ViewModel() {
     var locations = new ViewLocations(i);
     self.locationList.push(locations);
   });
+
+  //TODO: search list and show results.
+  this.search = ko.observable("");
+  this.searchResults = ko.computed(function() {
+    var s = self.search().toLowerCase();
+    if (s){
+      return ko.utils.arrayFilter(self.locationList(), function(i) {
+        var match = i.name.toLowerCase().indexOf(s) >= 0;
+        i.isVisible(match);
+        return match;
+        })
+    } else {
+      return self.locationList()
+    }
+
+  });
+
+
+
 };
