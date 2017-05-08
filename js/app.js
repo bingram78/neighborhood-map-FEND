@@ -114,35 +114,6 @@ var googleError = function() {
   window.alert("Maps cannot load. Please check yo' situation!");
 };
 
-// Ajax request for the Flickr results of location.
-
-var flickrPhotos = function(place) {
-  var flickrBaseUrl = "https://api.flickr.com/services/rest/?";
-  var flickrMethod = "method=flickr.photos.search&";
-  var flickrApiKey = "api_key=f21a10d1ea16e861d19731ef5b7c6681&";
-  var flickrText = "text=";
-  var flickrSearch = place;
-  var flickrSearchParams = "&per_page=5&format=json&nojsoncallback=1"
-  var flickrFullUrl = flickrBaseUrl+flickrMethod+flickrApiKey+flickrText+flickrSearch+flickrSearchParams;
-  var flickrAjaxRequest = $.ajax({
-    url: flickrFullUrl,
-    type: 'get',
-    dataType: 'json',
-  });
-  flickrAjaxRequest.done(function (data) {
-    var flickrImageID = data.photos.photo[0].id;
-    var flickrServerID = data.photos.photo[0].server;
-    var flickrFarmID = data.photos.photo[0].farm;
-    var flickrSecret = data.photos.photo[0].secret;
-    var flickrResults = "https://farm" + flickrFarmID + ".staticflickr.com/"
-                          + flickrServerID + "/" + flickrImageID + "_" + flickrSecret + "_m.jpg";
-    var fullImageTag = "<img src='" + flickrResults + "' alt='image from flickr'>";
-    console.log(fullImageTag);
-    return fullImageTag;
-  }).fail(function (data) {
-    window.alert("flickr has failed");
-  });
-};
 
 function initMap() {
   var mapOptions = {
@@ -152,6 +123,7 @@ function initMap() {
   };
   map = new google.maps.Map(document.getElementById('map'), mapOptions);
   geocoder = new google.maps.Geocoder();
+  infoWindow = new google.maps.InfoWindow();
 
   var vm = new ViewModel();
   ko.applyBindings(vm);
@@ -160,46 +132,73 @@ function initMap() {
 
 // This makes each default location. TODO: infoWindow.
 var ViewLocations = function(loc) {
-  var that = this;
+  var self = this;
   this.name = loc.name;
   this.address = loc.address;
-
-  // Setup infoWindow information and bind it below with marker as generated.
-  // TODO: Call the FlickrPhotos function to retrieve image tag to apply to infoWindow.
-  this.image = flickrPhotos(loc.name);
-  // Need to get data from image request into infoWindowContent below.
-  var infoWindowContent = '<strong>' + that.name + '</strong><br>'
-                          + that.address + '<br>';
-  infoWindow = new google.maps.InfoWindow();
-
+  var infoWindowContent;
   // Creates markers for each location binds infowindow information with each one
   // TODO: create error for infowindow, setTimeouts and Animations.
   geocoder.geocode({'address':this.address}, function(results, status) {
     if (status === 'OK') {
-      var geolocation = results[0].geometry.location
+      self.geolocation = results[0].geometry.location
       //TODO: create the address from the geocoded results. Will require refactoring.
       // console.log(results[0].formatted_address);
-      var markerOptions = {
+      self.markerOptions = {
         map: map,
-        position: geolocation,
+        position: self.geolocation,
         animation: google.maps.Animation.DROP
       }
-      marker = new google.maps.Marker(markerOptions);
-      markers.push(marker);
-      marker.addListener('click', function() {
-        infoWindow.setContent(infoWindowContent);
-        infoWindow.open(map, this);
-      })
-      that.location = marker;
+      self.marker = new google.maps.Marker(self.markerOptions);
+      // Setup infoWindow information and bind it below with marker as generated.
+      // Ajax request for the Flickr results of location.
+
+      var flickrPhotos = function(place) {
+        var flickrRest = "https://api.flickr.com/services/rest/?";
+        var flickrMethod = "method=flickr.photos.search&";
+        var flickrApiKey = "api_key=f21a10d1ea16e861d19731ef5b7c6681&";
+        var flickrText = "text=";
+        var flickrSearch = place;
+        var flickrSearchParams = "&per_page=5&format=json&nojsoncallback=1"
+        var flickrFullUrl = flickrRest+flickrMethod+flickrApiKey+flickrText+flickrSearch+flickrSearchParams;
+        // console.log(flickrFullUrl);
+        flickrAjaxRequest = $.ajax({
+          url: flickrFullUrl,
+          type: 'get',
+          dataType: 'json',
+        });
+        flickrAjaxRequest.done(function (data) {
+          var flickrImageID = data.photos.photo[0].id;
+          var flickrServerID = data.photos.photo[0].server;
+          var flickrFarmID = data.photos.photo[0].farm;
+          var flickrSecret = data.photos.photo[0].secret;
+          var flickrResults = "https://farm" + flickrFarmID + ".staticflickr.com/"
+                                + flickrServerID + "/" + flickrImageID + "_" + flickrSecret + "_m.jpg";
+          var fullImageTag = "<img src='" + flickrResults + "' alt='image from flickr'>";
+          // console.log(fullImageTag);
+
+          self.infoWindowContent = '<strong>' + self.name + '</strong><br>'
+                                  + self.address + '<br>' + fullImageTag;
+          self.marker.addListener('click', function() {
+            infoWindow.setContent(self.infoWindowContent);
+            infoWindow.open(map, this);
+          });
+          self.location = marker;
+          markers.push(self.marker);
+        }).fail(function (data) {
+          window.alert("flickr has failed");
+        });
+      };
+      flickrPhotos(self.name);
     }
     else {
       alert('Geocode was not successful because:' + status);
     }
   });
+
   // function for applying click binding in the list view.
   this.showMarker = function() {
-    infoWindow.setContent(infoWindowContent);
-    infoWindow.open(map, that.location);
+    infoWindow.setContent(self.infoWindowContent);
+    infoWindow.open(map, self.marker);
   };
 };
 
