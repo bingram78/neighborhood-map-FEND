@@ -1,32 +1,19 @@
 /*
-Stylesheet for Neighborhood Map - FEND
+Additional Styles for Neighborhood Map - FEND
 */
-* {
-  box-sizing: border-box;
-}
-/* Optional: Makes the sample page fill the window especially the map. */
-html, body {
- height: 100%;
- margin: 0;
- padding: 0;
- background-color: #AAA;
- display: block;
+
+body {
+  background-color: #263C3F !important;
 }
 
-/* Always set the map height explicitly to define the size of the div
-      * element that contains the map. */
 #map {
- height: 100%;
- width: 75%;
- float: right;
-}
-
-.fonts {
-  color: #FFF;
+ height: 100vh;
 }
 
 .sidebar {
-  width: 25%;
-  float: left;
-  overflow: auto;
+  color: #fff;
+}
+
+.listColor {
+  color: #263C3F !important;
 }

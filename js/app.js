@@ -1,5 +1,10 @@
+/* ---------------------------------------------
+  Neighborhood Map Project - UDACITY FEND
+    Bellingham, WA Sites
+  by: Blake Ingram
+---------------------------------------------*/
 
-// Array of default locations
+// Array of initial default locations
 var defaultLocations = [
   {
     name: "Bellingham Farmers Market",
@@ -41,6 +46,7 @@ var geocode;
 var infoWindow;
 var marker;
 
+// Map night mode stylings.
 var nightModeStyle = [
         {elementType: 'geometry', stylers: [{color: '#242f3e'}]},
         {elementType: 'labels.text.stroke', stylers: [{color: '#242f3e'}]},
@@ -124,15 +130,18 @@ var nightModeStyle = [
 
 // Displays error alert box that Maps could not load.
 // Called from google api script loading in HTML file.
-var googleError = function() {
+function googleError() {
   window.alert("Maps cannot load. Please check yo' situation!");
 };
 
-// Initialize map and apply KO bindings from ViewModel. Called by maps api callback.
+/* --------------------------------
+Initialize map and apply KO bindings from ViewModel.
+Called by maps api callback.
+--------------------------------*/
 function initMap() {
   var mapOptions = {
-    center: {lat: 48.7435276, lng: -122.4856877},
-    zoom: 13,
+    center: {lat: 48.749738, lng: -122.471724},
+    zoom: 12,
     styles: nightModeStyle
   };
   map = new google.maps.Map(document.getElementById('map'), mapOptions);
@@ -143,39 +152,33 @@ function initMap() {
   ko.applyBindings(vm);
   };
 
-
-// This makes each default location.
+/* -----------------------------------
+The function below builds each location in the viewModel, geocodes it on
+the map, sets its location marker, and populates the infoWindow with
+images from flickr api request.
+----------------------------------- */
 var ViewLocations = function(loc) {
   var self = this;
   this.name = loc.name;
   this.address = loc.address;
   var infoWindowContent;
-  // Creates markers for each location binds infowindow information with each one
-  // TODO: create error for infowindow, setTimeouts and Animations.
+
+  // Creates markers for each location binds infowindow information with each.
   geocoder.geocode({'address':this.address}, function(results, status) {
     if (status === 'OK') {
       self.geolocation = results[0].geometry.location
-      //TODO: create the address from the geocoded results. Will require refactoring.
-      // console.log(results[0].formatted_address);
       self.markerOptions = {
         map: map,
         position: self.geolocation,
         animation: google.maps.Animation.DROP
       }
+      // Create marker.
       self.marker = new google.maps.Marker(self.markerOptions);
-      self.isVisible = ko.observable(false);
-      self.isVisible.subscribe(function(visible) {
-        if (visible) {
-          self.marker.setVisible(true);
-        } else {
-          self.marker.setVisible(false);
-        }
-      });
-      self.isVisible(true);
 
-      // Setup infoWindow information and bind it below with marker as generated.
-      // Ajax request for the Flickr results of location.
-
+      /* -----------------------------------
+      Flickr API ajax request. Poplulates infoWindow when request is done
+      or when it fails. Infowindow has event listeners added here.
+      ----------------------------------- */
       var flickrPhotos = function(place) {
         var flickrRest = "https://api.flickr.com/services/rest/?";
         var flickrMethod = "method=flickr.photos.search&";
@@ -184,44 +187,68 @@ var ViewLocations = function(loc) {
         var flickrSearch = place;
         var flickrSearchParams = "&per_page=5&format=json&nojsoncallback=1"
         var flickrFullUrl = flickrRest+flickrMethod+flickrApiKey+flickrText+flickrSearch+flickrSearchParams;
-        // console.log(flickrFullUrl);
         flickrAjaxRequest = $.ajax({
           url: flickrFullUrl,
           type: 'get',
           dataType: 'json',
         });
         flickrAjaxRequest.done(function (data) {
-          var flickrImageID = data.photos.photo[1].id;
-          var flickrServerID = data.photos.photo[1].server;
-          var flickrFarmID = data.photos.photo[1].farm;
-          var flickrSecret = data.photos.photo[1].secret;
-          var flickrResults = "https://farm" + flickrFarmID + ".staticflickr.com/"
-                                + flickrServerID + "/" + flickrImageID + "_" + flickrSecret + "_m.jpg";
-          var fullImageTag = "<img src='" + flickrResults + "' alt='image from flickr'>";
-          self.infoWindowContent = '<strong>' + self.name + '</strong><br>'
-                                  + self.address + '<br>' + fullImageTag;
-          self.marker.addListener('click', function() {
-            infoWindow.setContent(self.infoWindowContent);
-            infoWindow.open(map, this);
-          });
+          if (data.photos) {
+            // Successful flickr request and infoWindow created.
+            var flickrImageID = data.photos.photo[1].id;
+            var flickrServerID = data.photos.photo[1].server;
+            var flickrFarmID = data.photos.photo[1].farm;
+            var flickrSecret = data.photos.photo[1].secret;
+            var flickrResults = "https://farm" + flickrFarmID + ".staticflickr.com/"
+                                  + flickrServerID + "/" + flickrImageID + "_" + flickrSecret + "_m.jpg";
+            var fullImageTag = "<img src='" + flickrResults + "' alt='image from flickr'>";
+            self.infoWindowContent = '<strong>' + self.name + '</strong><br>'
+                                    + self.address + '<br>' + fullImageTag +'<br>Image obtained from Flickr API';
+            self.marker.addListener('click', function() {
+              infoWindow.setContent(self.infoWindowContent);
+              infoWindow.open(map, this);
+              self.marker.setAnimation(google.maps.Animation.BOUNCE);
+              setTimeout(function() {self.marker.setAnimation(null); }, 2100)
+            })
+          } else if (data.stat == 'fail') {
+            // Flickr request send back failed status and infoWindow created.
+            var flickrFail = "<br><br><p>Sorry, this Flickr image will not load.</p>";
+            self.infoWindowContent = '<strong>' + self.name + '</strong><br>'
+                                    + self.address + '<br>' + flickrFail;
+            self.marker.addListener('click', function() {
+              infoWindow.setContent(self.infoWindowContent);
+              infoWindow.open(map, this);
+              self.marker.setAnimation(google.maps.Animation.BOUNCE);
+              setTimeout(function() {self.marker.setAnimation(null); }, 2100)
+            })
+          }
         }).fail(function (data) {
-          window.alert("flickr has failed");
+          // Flickr request fails completely and no infoWindows created.
+          window.alert("Sorry but Flickr requests have failed. Try again later.")
         });
       };
       flickrPhotos(self.name);
     }
     else {
-      alert('Geocode was not successful because:' + status);
+      // Error handling for geocoding failed response.
+      window.alert('Geocode was not successful because:' + status);
     }
   });
 
-  // function for applying click binding in the list view.
+  // Function for applying click binding in the list view.
   this.listClickWindow = function() {
     infoWindow.setContent(self.infoWindowContent);
     infoWindow.open(map, self.marker);
+    self.marker.setAnimation(google.maps.Animation.BOUNCE);
+    setTimeout(function() {self.marker.setAnimation(null); }, 2100)
   };
 };
 
+/* -----------------------------------
+Function that creates the view model for the app. Location array is bound to
+knockoutJS observable. Filter search function allows locations to be shown
+or hidden based on search input. List and map markers update accordingly.
+----------------------------------- */
 function ViewModel() {
   var self = this;
   // Creates observables and arrays.
@@ -238,7 +265,7 @@ function ViewModel() {
     if (s) {
       return ko.utils.arrayFilter(self.locationList(), function(place) {
         var match = place.name.toLowerCase().indexOf(s) >= 0;
-        place.isVisible(match);
+        place.marker.setVisible(match);
         return match;
         })
     }
@@ -251,7 +278,4 @@ function ViewModel() {
       return self.locationList();
     }
   });
-
-
-
 };
