@@ -155,7 +155,7 @@ function initMap() {
 /* -----------------------------------
 The function below builds each location in the viewModel, geocodes it on
 the map, sets its location marker, and populates the infoWindow with
-images from flickr api request.
+images from Flickr api request.
 ----------------------------------- */
 var ViewLocations = function(loc) {
   var self = this;
@@ -258,7 +258,8 @@ function ViewModel() {
     self.locationList.push(locations);
   });
 
-  //TODO: search list and show results.
+  // Thanks to Sarah and Karol for the help with this search function.
+  // Creates the search function to return matching list items and markers.
   self.search = ko.observable("");
   self.searchResults = ko.computed(function() {
     var s = self.search().toLowerCase();
