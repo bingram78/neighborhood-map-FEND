@@ -132,7 +132,7 @@ var nightModeStyle = [
 // Called from google api script loading in HTML file.
 function googleError() {
   window.alert("Maps cannot load. Please check yo' situation!");
-};
+}
 
 /* --------------------------------
 Initialize map and apply KO bindings from ViewModel.
@@ -150,7 +150,7 @@ function initMap() {
 
   var vm = new ViewModel();
   ko.applyBindings(vm);
-  };
+  }
 
 /* -----------------------------------
 The function below builds each location in the viewModel, geocodes it on
@@ -159,19 +159,19 @@ images from Flickr api request.
 ----------------------------------- */
 var ViewLocations = function(loc) {
   var self = this;
-  this.name = loc.name;
-  this.address = loc.address;
+  self.name = loc.name;
+  self.address = loc.address;
   var infoWindowContent;
 
   // Creates markers for each location binds infowindow information with each.
   geocoder.geocode({'address':this.address}, function(results, status) {
     if (status === 'OK') {
-      self.geolocation = results[0].geometry.location
+      self.geolocation = results[0].geometry.location;
       self.markerOptions = {
         map: map,
         position: self.geolocation,
         animation: google.maps.Animation.DROP
-      }
+      };
       // Create marker.
       self.marker = new google.maps.Marker(self.markerOptions);
 
@@ -185,7 +185,7 @@ var ViewLocations = function(loc) {
         var flickrApiKey = "api_key=f21a10d1ea16e861d19731ef5b7c6681&";
         var flickrText = "text=";
         var flickrSearch = place;
-        var flickrSearchParams = "&per_page=5&format=json&nojsoncallback=1"
+        var flickrSearchParams = "&per_page=5&format=json&nojsoncallback=1";
         var flickrFullUrl = flickrRest+flickrMethod+flickrApiKey+flickrText+flickrSearch+flickrSearchParams;
         flickrAjaxRequest = $.ajax({
           url: flickrFullUrl,
@@ -199,32 +199,32 @@ var ViewLocations = function(loc) {
             var flickrServerID = data.photos.photo[1].server;
             var flickrFarmID = data.photos.photo[1].farm;
             var flickrSecret = data.photos.photo[1].secret;
-            var flickrResults = "https://farm" + flickrFarmID + ".staticflickr.com/"
-                                  + flickrServerID + "/" + flickrImageID + "_" + flickrSecret + "_m.jpg";
+            var flickrResults = "https://farm" + flickrFarmID + ".staticflickr.com/"+
+                								flickrServerID + "/" + flickrImageID + "_" + flickrSecret + "_m.jpg";
             var fullImageTag = "<img src='" + flickrResults + "' alt='image from flickr'>";
-            self.infoWindowContent = '<strong>' + self.name + '</strong><br>'
-                                    + self.address + '<br>' + fullImageTag +'<br>Image obtained from Flickr API';
+            self.infoWindowContent = '<strong>' + self.name + '</strong><br>' +
+              												self.address + '<br>' + fullImageTag +'<br>Image obtained from Flickr API';
             self.marker.addListener('click', function() {
               infoWindow.setContent(self.infoWindowContent);
               infoWindow.open(map, this);
               self.marker.setAnimation(google.maps.Animation.BOUNCE);
-              setTimeout(function() {self.marker.setAnimation(null); }, 2100)
-            })
+              setTimeout(function() {self.marker.setAnimation(null); }, 2100);
+            });
           } else if (data.stat == 'fail') {
             // Flickr request send back failed status and infoWindow created.
             var flickrFail = "<br><br><p>Sorry, this Flickr image will not load.</p>";
-            self.infoWindowContent = '<strong>' + self.name + '</strong><br>'
-                                    + self.address + '<br>' + flickrFail;
+            self.infoWindowContent = '<strong>' + self.name + '</strong><br>' +
+              												self.address + '<br>' + flickrFail;
             self.marker.addListener('click', function() {
               infoWindow.setContent(self.infoWindowContent);
               infoWindow.open(map, this);
               self.marker.setAnimation(google.maps.Animation.BOUNCE);
-              setTimeout(function() {self.marker.setAnimation(null); }, 2100)
-            })
+              setTimeout(function() {self.marker.setAnimation(null); }, 2100);
+            });
           }
-        }).fail(function (data) {
+        }).fail(function () {
           // Flickr request fails completely and no infoWindows created.
-          window.alert("Sorry but Flickr requests have failed. Try again later.")
+          window.alert("Sorry but Flickr requests have failed. Try again later.");
         });
       };
       flickrPhotos(self.name);
@@ -236,11 +236,11 @@ var ViewLocations = function(loc) {
   });
 
   // Function for applying click binding in the list view.
-  this.listClickWindow = function() {
+  self.listClickWindow = function() {
     infoWindow.setContent(self.infoWindowContent);
     infoWindow.open(map, self.marker);
     self.marker.setAnimation(google.maps.Animation.BOUNCE);
-    setTimeout(function() {self.marker.setAnimation(null); }, 2100)
+    setTimeout(function() {self.marker.setAnimation(null); }, 2100);
   };
 };
 
@@ -268,15 +268,15 @@ function ViewModel() {
         var match = place.name.toLowerCase().indexOf(s) >= 0;
         place.marker.setVisible(match);
         return match;
-        })
+        });
     }
     else {
       self.locationList().forEach(function(location) {
         if (location.marker) {
           location.marker.setVisible(true);
         }
-      })
+      });
       return self.locationList();
     }
   });
-};
+}
