@@ -3,20 +3,35 @@
 var defaultLocations = [
   {
     name: "Bellingham Farmers Market",
-    address: "1100 Railroad Ave, Bellingham, WA 98225, USA",
-    image: ""
+    address: "1100 Railroad Ave, Bellingham, WA 98225, USA"
   },
   {
     name: "Whatcom Falls Park",
-    address: "1401 Electric Ave, Bellingham, WA 98229, USA",
-    image: ""
-
+    address: "1401 Electric Ave, Bellingham, WA 98229, USA"
   },
   {
     name: "SPARK Museum of Electrical Invention",
-    address: "1312 Bay St, Bellingham, WA 98225, USA",
-    image: ""
-
+    address: "1312 Bay St, Bellingham, WA 98225, USA"
+  },
+  {
+    name: "Sehome Hill Arboretum",
+    address: "600 25th Street, Bellingham, WA 98225"
+  },
+  {
+    name: "Mount Baker Theatre",
+    address: "104 N Commercial St, Bellingham, WA 98225"
+  },
+  {
+    name: "Boundary Bay Brewery & Bistro",
+    address: "1107 Railroad Ave, Bellingham, WA 98225"
+  },
+  {
+    name: "San Juan Cruises",
+    address: "355 Harris Ave #104, Bellingham, WA 98225"
+  },
+  {
+    name: "Zuanich Point Park",
+    address: "2600 N Harbor Loop Dr, Bellingham, WA 98225"
   }
 ];
 
@@ -176,10 +191,10 @@ var ViewLocations = function(loc) {
           dataType: 'json',
         });
         flickrAjaxRequest.done(function (data) {
-          var flickrImageID = data.photos.photo[2].id;
-          var flickrServerID = data.photos.photo[2].server;
-          var flickrFarmID = data.photos.photo[2].farm;
-          var flickrSecret = data.photos.photo[2].secret;
+          var flickrImageID = data.photos.photo[1].id;
+          var flickrServerID = data.photos.photo[1].server;
+          var flickrFarmID = data.photos.photo[1].farm;
+          var flickrSecret = data.photos.photo[1].secret;
           var flickrResults = "https://farm" + flickrFarmID + ".staticflickr.com/"
                                 + flickrServerID + "/" + flickrImageID + "_" + flickrSecret + "_m.jpg";
           var fullImageTag = "<img src='" + flickrResults + "' alt='image from flickr'>";
@@ -218,17 +233,21 @@ function ViewModel() {
 
   //TODO: search list and show results.
   self.search = ko.observable("");
-
   self.searchResults = ko.computed(function() {
     var s = self.search().toLowerCase();
     if (s) {
-      return ko.utils.arrayFilter(self.locationList(), function(i) {
-        var match = i.name.toLowerCase().indexOf(s) >= 0;
-        i.isVisible(match);
+      return ko.utils.arrayFilter(self.locationList(), function(place) {
+        var match = place.name.toLowerCase().indexOf(s) >= 0;
+        place.isVisible(match);
         return match;
         })
     }
     else {
+      self.locationList().forEach(function(location) {
+        if (location.marker) {
+          location.marker.setVisible(true);
+        }
+      })
       return self.locationList();
     }
   });

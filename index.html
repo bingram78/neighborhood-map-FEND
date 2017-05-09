@@ -25,7 +25,7 @@
         <!-- NOT YET WORKING! -->
         <!-- <button data-bind="click: nightModeClick">Switch to Night Mode</button> -->
         <!-- <p data-bind="text: name, click: view"></p> -->
-        <input data-bind="value: search, valueUpdate: 'keyup'" placeholder="search">
+        <input data-bind="textInput: search" placeholder="search">
         <ul data-bind="foreach: searchResults">
           <li data-bind="text: name, click: listClickWindow"></li>
         </ul>
