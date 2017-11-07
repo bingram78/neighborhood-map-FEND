@@ -1,0 +1,22 @@
+{
+  "name": "neighborhood-map-fend",
+  "version": "1.0.0",
+  "description": "This project is a requirement of Udacity front end nanodegree. It is a \"neighborhood map\", a single page app utilizing various APIs and frameworks. I chose Bellingham, WA because I like that area but I do not currently live there. :)",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bingram78/neighborhood-map-FEND.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/bingram78/neighborhood-map-FEND/issues"
+  },
+  "homepage": "https://github.com/bingram78/neighborhood-map-FEND#readme",
+  "devDependencies": {
+    "gulp": "^3.9.1"
+  }
+}
